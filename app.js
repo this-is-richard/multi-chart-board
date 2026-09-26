@@ -166,6 +166,11 @@ function updateResolvedUI(symbols, truncated) {
   statusLine.textContent = truncated
     ? `Showing first ${MAX_CHARTS} of more tickers entered.`
     : "";
+  const metaLine = document.getElementById("metaLine");
+  if (metaLine) {
+    const hasContent = Boolean(resolvedLine.textContent || statusLine.textContent);
+    metaLine.hidden = !hasContent;
+  }
 }
 
 function loadState() {
@@ -365,8 +370,53 @@ function boot() {
   else window.addEventListener("load", start);
 }
 
+
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPopout = document.getElementById("settingsPopout");
+
+function setSettingsOpen(open) {
+  if (!settingsBtn || !settingsPopout) return;
+  settingsPopout.hidden = !open;
+  settingsBtn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+function toggleSettings() {
+  const open = settingsPopout && settingsPopout.hidden;
+  setSettingsOpen(Boolean(open));
+}
+
+if (settingsBtn && settingsPopout) {
+  settingsBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleSettings();
+  });
+
+  settingsPopout.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  document.addEventListener("click", () => {
+    setSettingsOpen(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setSettingsOpen(false);
+  });
+
+  // Changing settings in the popout should apply (interval/theme) or use existing chart-count handler
+  intervalEl.addEventListener("change", () => {
+    applyFromTickers();
+    setSettingsOpen(false);
+  });
+  themeEl.addEventListener("change", () => {
+    applyFromTickers();
+    setSettingsOpen(false);
+  });
+}
+
 chartCountEl.addEventListener("change", () => {
   applyFromChartCount();
+  setSettingsOpen(false);
 });
 
 applyBtn.addEventListener("click", applyBoard);

@@ -10,65 +10,79 @@
 <body>
   <header class="toolbar">
     <div class="brand">
-      <h1>Multi Chart Board</h1>
-      <p class="hint">TradingView widgets · 1–8 charts · 50 &amp; 200 SMA</p>
+      <h1>Multi Chart</h1>
     </div>
 
-    <div class="controls">
-      <label class="field">
-        <span>Charts</span>
-        <select id="chartCount">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6" selected>6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-        </select>
+    <div class="primary-row">
+      <label class="field tickers-field" for="tickersInput">
+        <span class="sr-only">Tickers</span>
+        <input
+          id="tickersInput"
+          type="text"
+          placeholder="Tickers: NVDA, MU, AVGO"
+          autocomplete="off"
+          spellcheck="false"
+        />
       </label>
-
-      <label class="field">
-        <span>Interval</span>
-        <select id="interval">
-          <option value="1">1m</option>
-          <option value="5">5m</option>
-          <option value="15">15m</option>
-          <option value="60">1h</option>
-          <option value="240">4h</option>
-          <option value="D" selected>1D</option>
-          <option value="W">1W</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>Theme</span>
-        <select id="theme">
-          <option value="dark" selected>Dark</option>
-          <option value="light">Light</option>
-        </select>
-      </label>
-
       <button id="applyBtn" type="button">Apply</button>
+
+      <div class="settings-wrap">
+        <button
+          id="settingsBtn"
+          type="button"
+          class="icon-btn"
+          aria-label="Settings"
+          aria-expanded="false"
+          aria-controls="settingsPopout"
+          title="Settings"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+        <div id="settingsPopout" class="settings-popout" hidden role="dialog" aria-label="Chart settings">
+          <label class="field">
+            <span>Charts</span>
+            <select id="chartCount">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6" selected>6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Interval</span>
+            <select id="interval">
+              <option value="1">1m</option>
+              <option value="5">5m</option>
+              <option value="15">15m</option>
+              <option value="60">1h</option>
+              <option value="240">4h</option>
+              <option value="D" selected>1D</option>
+              <option value="W">1W</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Theme</span>
+            <select id="theme">
+              <option value="dark" selected>Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </label>
+        </div>
+      </div>
     </div>
   </header>
 
-  <section class="tickers-bar" aria-label="Tickers">
-    <label class="field tickers-field" for="tickersInput">
-      <span>Tickers</span>
-      <input
-        id="tickersInput"
-        type="text"
-        placeholder="NVDA, MU, AVGO"
-        autocomplete="off"
-        spellcheck="false"
-      />
-    </label>
-    <p class="tickers-hint">Comma or space separated · US stocks ok without exchange</p>
-    <p class="resolved-line" id="resolvedLine" aria-live="polite"></p>
-    <p class="status-line" id="statusLine" aria-live="polite"></p>
-  </section>
+  <p class="meta-line" id="metaLine" aria-live="polite" hidden>
+    <span class="resolved-line" id="resolvedLine"></span>
+    <span class="status-line" id="statusLine"></span>
+  </p>
 
   <main class="grid" id="chartGrid" aria-live="polite"></main>
 
