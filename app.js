@@ -2,6 +2,7 @@ const DEFAULT_TICKERS = "AAPL, MSFT, NVDA, TSLA, AMZN, META";
 const MAX_CHARTS = 8;
 const STORAGE_KEY = "multi-chart-board-v2";
 const LEGACY_STORAGE_KEY = "multi-chart-board-v1";
+const SETS_STORAGE_KEY = "multi-chart-board-sets-v1";
 
 /** Common US tickers → TradingView exchange prefix (no external API). */
 const US_EXCHANGE_MAP = {
@@ -371,6 +372,194 @@ function boot() {
 }
 
 
+
+/* ── Saved ticker sets (localStorage only) ─────────────────────────── */
+
+const setsBtn = document.getElementById("setsBtn");
+const setsPopout = document.getElementById("setsPopout");
+const setsListEl = document.getElementById("setsList");
+const setsEmptyEl = document.getElementById("setsEmpty");
+const setNameInput = document.getElementById("setNameInput");
+const saveSetBtn = document.getElementById("saveSetBtn");
+
+function loadSetsStore() {
+  try {
+    const raw = localStorage.getItem(SETS_STORAGE_KEY);
+    if (!raw) return { sets: [], lastUsedId: null };
+    const data = JSON.parse(raw);
+    const sets = Array.isArray(data?.sets) ? data.sets : [];
+    return {
+      sets: sets
+        .filter((s) => s && typeof s.name === "string" && typeof s.tickers === "string")
+        .map((s) => ({
+          id: String(s.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+          name: s.name.trim(),
+          tickers: s.tickers.trim(),
+          updatedAt: Number(s.updatedAt) || Date.now(),
+        }))
+        .filter((s) => s.name && s.tickers),
+      lastUsedId: data?.lastUsedId ? String(data.lastUsedId) : null,
+    };
+  } catch {
+    return { sets: [], lastUsedId: null };
+  }
+}
+
+function saveSetsStore(store) {
+  localStorage.setItem(
+    SETS_STORAGE_KEY,
+    JSON.stringify({
+      sets: store.sets || [],
+      lastUsedId: store.lastUsedId || null,
+    })
+  );
+}
+
+function setSubtitle(tickers) {
+  const parts = parseTickers(tickers);
+  const n = parts.length;
+  if (!n) return "0 tickers";
+  const preview = parts.slice(0, 3).join(", ");
+  const more = n > 3 ? ` +${n - 3}` : "";
+  return `${n} · ${preview}${more}`;
+}
+
+function renderSetsList() {
+  if (!setsListEl || !setsEmptyEl) return;
+  const store = loadSetsStore();
+  // Newest first
+  const sets = [...store.sets].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  setsListEl.innerHTML = "";
+  setsEmptyEl.hidden = sets.length > 0;
+
+  for (const set of sets) {
+    const li = document.createElement("li");
+    li.className = "sets-item" + (store.lastUsedId === set.id ? " is-active" : "");
+    li.dataset.id = set.id;
+
+    const loadBtn = document.createElement("button");
+    loadBtn.type = "button";
+    loadBtn.className = "sets-item-btn";
+    loadBtn.title = `Load “${set.name}”`;
+
+    const nameEl = document.createElement("span");
+    nameEl.className = "sets-item-name";
+    nameEl.textContent = set.name;
+
+    const metaEl = document.createElement("span");
+    metaEl.className = "sets-item-meta";
+    metaEl.textContent = setSubtitle(set.tickers);
+
+    loadBtn.appendChild(nameEl);
+    loadBtn.appendChild(metaEl);
+    loadBtn.addEventListener("click", () => {
+      loadTickerSet(set.id);
+    });
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "sets-item-delete";
+    delBtn.setAttribute("aria-label", `Delete set ${set.name}`);
+    delBtn.title = "Delete";
+    delBtn.textContent = "×";
+    delBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      deleteTickerSet(set.id);
+    });
+
+    li.appendChild(loadBtn);
+    li.appendChild(delBtn);
+    setsListEl.appendChild(li);
+  }
+}
+
+function saveCurrentAsSet() {
+  const name = (setNameInput?.value || "").trim();
+  if (!name) {
+    setNameInput?.focus();
+    statusLine.textContent = "Enter a name for this set.";
+    const metaLine = document.getElementById("metaLine");
+    if (metaLine) metaLine.hidden = false;
+    return;
+  }
+
+  const tickers = (tickersInput.value || "").trim();
+  const parts = parseTickers(tickers);
+  if (!parts.length) {
+    statusLine.textContent = "Enter at least one ticker before saving a set.";
+    const metaLine = document.getElementById("metaLine");
+    if (metaLine) metaLine.hidden = false;
+    return;
+  }
+
+  const store = loadSetsStore();
+  const existing = store.sets.find(
+    (s) => s.name.toLowerCase() === name.toLowerCase()
+  );
+  const now = Date.now();
+
+  if (existing) {
+    existing.tickers = tickers;
+    existing.name = name; // keep casing from latest save
+    existing.updatedAt = now;
+    store.lastUsedId = existing.id;
+  } else {
+    const id = `${now}-${Math.random().toString(36).slice(2, 8)}`;
+    store.sets.push({ id, name, tickers, updatedAt: now });
+    store.lastUsedId = id;
+  }
+
+  saveSetsStore(store);
+  if (setNameInput) setNameInput.value = "";
+  renderSetsList();
+  statusLine.textContent = existing
+    ? `Updated set “${name}”.`
+    : `Saved set “${name}”.`;
+  const metaLine = document.getElementById("metaLine");
+  if (metaLine) metaLine.hidden = false;
+}
+
+function loadTickerSet(id) {
+  const store = loadSetsStore();
+  const set = store.sets.find((s) => s.id === id);
+  if (!set) return;
+
+  tickersInput.value = set.tickers;
+  store.lastUsedId = set.id;
+  saveSetsStore(store);
+  renderSetsList();
+  setSetsOpen(false);
+  applyFromTickers();
+}
+
+function deleteTickerSet(id) {
+  const store = loadSetsStore();
+  const before = store.sets.length;
+  store.sets = store.sets.filter((s) => s.id !== id);
+  if (store.lastUsedId === id) store.lastUsedId = null;
+  if (store.sets.length === before) return;
+  saveSetsStore(store);
+  renderSetsList();
+}
+
+function setSetsOpen(open) {
+  if (!setsBtn || !setsPopout) return;
+  setsPopout.hidden = !open;
+  setsBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) {
+    setSettingsOpen(false);
+    renderSetsList();
+    setNameInput?.focus();
+  }
+}
+
+function toggleSets() {
+  const open = setsPopout && setsPopout.hidden;
+  setSetsOpen(Boolean(open));
+}
+
+/* ── Settings + Sets popouts ───────────────────────────────────────── */
+
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPopout = document.getElementById("settingsPopout");
 
@@ -378,6 +567,7 @@ function setSettingsOpen(open) {
   if (!settingsBtn || !settingsPopout) return;
   settingsPopout.hidden = !open;
   settingsBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) setSetsOpen(false);
 }
 
 function toggleSettings() {
@@ -394,15 +584,43 @@ if (settingsBtn && settingsPopout) {
   settingsPopout.addEventListener("click", (event) => {
     event.stopPropagation();
   });
+}
 
-  document.addEventListener("click", () => {
+if (setsBtn && setsPopout) {
+  setsBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleSets();
+  });
+
+  setsPopout.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  saveSetBtn?.addEventListener("click", () => {
+    saveCurrentAsSet();
+  });
+
+  setNameInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      saveCurrentAsSet();
+    }
+  });
+}
+
+document.addEventListener("click", () => {
+  setSettingsOpen(false);
+  setSetsOpen(false);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
     setSettingsOpen(false);
-  });
+    setSetsOpen(false);
+  }
+});
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setSettingsOpen(false);
-  });
-
+if (settingsBtn && settingsPopout) {
   // Changing settings in the popout should apply (interval/theme) or use existing chart-count handler
   intervalEl.addEventListener("change", () => {
     applyFromTickers();
@@ -436,8 +654,17 @@ tickersInput.addEventListener("input", () => {
 });
 
 boot();
+renderSetsList();
 
 // Export for sanity checks in Node (optional)
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { resolveSymbol, parseTickers, resolveTickers, US_EXCHANGE_MAP };
+  module.exports = {
+    resolveSymbol,
+    parseTickers,
+    resolveTickers,
+    US_EXCHANGE_MAP,
+    loadSetsStore,
+    saveSetsStore,
+    SETS_STORAGE_KEY,
+  };
 }

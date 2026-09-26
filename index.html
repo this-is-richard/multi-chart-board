@@ -26,6 +26,37 @@
       </label>
       <button id="applyBtn" type="button">Apply</button>
 
+      <div class="sets-wrap">
+        <button
+          id="setsBtn"
+          type="button"
+          class="icon-btn"
+          aria-label="Ticker sets"
+          aria-expanded="false"
+          aria-controls="setsPopout"
+          title="Saved ticker sets"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
+        <div id="setsPopout" class="sets-popout" hidden role="dialog" aria-label="Saved ticker sets">
+          <div class="sets-save-row">
+            <input
+              id="setNameInput"
+              type="text"
+              placeholder="Set name…"
+              maxlength="48"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button id="saveSetBtn" type="button" class="sets-save-btn">Save</button>
+          </div>
+          <ul id="setsList" class="sets-list" aria-label="Saved sets"></ul>
+          <p id="setsEmpty" class="sets-empty">No saved sets yet.</p>
+        </div>
+      </div>
+
       <div class="settings-wrap">
         <button
           id="settingsBtn"
