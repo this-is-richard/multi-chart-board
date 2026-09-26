@@ -1,14 +1,21 @@
 # Multi Chart Board
 
-TradingView free Advanced Chart embeds, 1–8 per page, with 50 and 200 SMA (default widget colors).
+Static page of TradingView free Advanced Chart embeds (1–8 charts) with default-colored 50 and 200 SMAs. No backend.
 
-Paste comma- or space-separated US tickers in the **Tickers** box (e.g. `NVDA, MU, AVGO`). Bare symbols are resolved via a static US exchange map (`NASDAQ` / `NYSE` / `AMEX`); unknowns default to `NASDAQ:`. Prefixed `EXCHANGE:SYMBOL` values are kept as-is. Chart count follows the ticker list (max 8).
+Paste comma- or space-separated US tickers (e.g. `NVDA, MU, AVGO`). Bare symbols resolve via a static US exchange map (`NASDAQ` / `NYSE` / `AMEX`); unknowns default to `NASDAQ:`. Prefixed `EXCHANGE:SYMBOL` values are kept as-is. Chart count follows the ticker list (max 8).
 
-## Run
+Saved ticker sets and settings stay in your browser (`localStorage`).
+
+## Live
+
+https://this-is-richard.github.io/multi-chart-board/
+
+Use `http://localhost:…` for local testing if `127.0.0.1` fails to load TradingView embeds.
+
+## Run locally
 
 ```bash
-cd /workspace/tradingview-multi-chart
 python3 -m http.server 5173 --bind 127.0.0.1
 ```
 
-Open http://127.0.0.1:5173
+Then open http://localhost:5173
