@@ -396,7 +396,7 @@ body {
 
 .chart-card {
   position: relative;
-  min-height: 260px;
+  min-height: 320px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
