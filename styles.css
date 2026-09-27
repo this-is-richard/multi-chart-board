@@ -375,6 +375,8 @@ body {
   padding: var(--gap);
   min-height: 0;
   overflow-y: auto;
+  /* Same row height as a full 6-chart board (2 rows filling the viewport). */
+  grid-auto-rows: calc((100% - var(--gap)) / 2);
 }
 
 .grid.cols-1 { grid-template-columns: 1fr; }
@@ -396,7 +398,8 @@ body {
 
 .chart-card {
   position: relative;
-  min-height: 320px;
+  min-height: 0;
+  height: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -453,5 +456,6 @@ body {
     grid-template-rows: none;
   }
 
-  .chart-card { min-height: 320px; }
+  /* One column: keep a readable floor when row calc is tall/narrow. */
+  .chart-card { min-height: 280px; }
 }
