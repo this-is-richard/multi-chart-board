@@ -1,8 +1,8 @@
 # Multi Chart Board
 
-Static page of TradingView free Advanced Chart embeds (1–8 charts) with default-colored 50 and 200 SMAs. No backend.
+Static page of TradingView free Advanced Chart embeds (1–16 charts) with default-colored 50 and 200 SMAs. No backend.
 
-Paste comma- or space-separated US tickers (e.g. `NVDA, MU, AVGO`). Bare symbols resolve via a static US exchange map (`NASDAQ` / `NYSE` / `AMEX`); unknowns default to `NASDAQ:`. Prefixed `EXCHANGE:SYMBOL` values are kept as-is. Chart count follows the ticker list (max 8).
+Paste comma- or space-separated US tickers (e.g. `NVDA, MU, AVGO`). Bare symbols resolve via a static US exchange map (`NASDAQ` / `NYSE` / `AMEX`); unknowns default to `NASDAQ:`. Prefixed `EXCHANGE:SYMBOL` values are kept as-is. Chart count follows the ticker list (max 16).
 
 Saved ticker sets and settings stay in your browser (`localStorage`).
 

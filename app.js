@@ -1,5 +1,5 @@
 const DEFAULT_TICKERS = "AAPL, MSFT, NVDA, TSLA, AMZN, META";
-const MAX_CHARTS = 8;
+const MAX_CHARTS = 16;
 const STORAGE_KEY = "multi-chart-board-v2";
 const LEGACY_STORAGE_KEY = "multi-chart-board-v1";
 const SETS_STORAGE_KEY = "multi-chart-board-sets-v1";
@@ -43,6 +43,13 @@ const US_EXCHANGE_MAP = {
   KLAC: "NASDAQ",
   LRCX: "NASDAQ",
   MRVL: "NASDAQ",
+  ADI: "NASDAQ",
+  MPWR: "NASDAQ",
+  NXPI: "NASDAQ",
+  MCHP: "NASDAQ",
+  ON: "NASDAQ",
+  FSLR: "NASDAQ",
+  SWKS: "NASDAQ",
   ASML: "NASDAQ",
   ORCL: "NYSE",
   // NYSE
@@ -250,7 +257,7 @@ function renderCharts({ count, symbols, interval, theme }) {
 }
 
 /**
- * Apply from the Tickers field: parse → resolve → clamp 1–8 → sync Charts dropdown.
+ * Apply from the Tickers field: parse → resolve → clamp 1–MAX_CHARTS → sync Charts dropdown.
  */
 function applyFromTickers() {
   if (typeof TradingView === "undefined") {
@@ -372,6 +379,35 @@ function boot() {
 }
 
 
+
+
+/* ── Built-in ticker set presets ───────────────────────────────────── */
+
+const BUILTIN_SETS = [
+  {
+    id: "builtin-semiconductors",
+    name: "Semiconductors",
+    tickers:
+      "NVDA, AVGO, MU, AMD, INTC, TXN, MRVL, QCOM, ADI, MPWR, NXPI, MCHP, ON, FSLR, SWKS",
+  },
+];
+
+/** Insert missing builtin sets by id; never overwrite an existing id. */
+function ensureBuiltinSets() {
+  const store = loadSetsStore();
+  let changed = false;
+  for (const builtin of BUILTIN_SETS) {
+    if (store.sets.some((s) => s.id === builtin.id)) continue;
+    store.sets.push({
+      id: builtin.id,
+      name: builtin.name,
+      tickers: builtin.tickers,
+      updatedAt: Date.now(),
+    });
+    changed = true;
+  }
+  if (changed) saveSetsStore(store);
+}
 
 /* ── Saved ticker sets (localStorage only) ─────────────────────────── */
 
@@ -654,6 +690,7 @@ tickersInput.addEventListener("input", () => {
 });
 
 boot();
+ensureBuiltinSets();
 renderSetsList();
 
 // Export for sanity checks in Node (optional)
@@ -663,6 +700,9 @@ if (typeof module !== "undefined" && module.exports) {
     parseTickers,
     resolveTickers,
     US_EXCHANGE_MAP,
+    MAX_CHARTS,
+    BUILTIN_SETS,
+    ensureBuiltinSets,
     loadSetsStore,
     saveSetsStore,
     SETS_STORAGE_KEY,
